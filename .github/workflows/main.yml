@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - main
-      -working-branch
+      - working-branch
   pull_request:
     branches:
       - main
-      -working-branch
+      - working-branch
 
 jobs:
   build:
