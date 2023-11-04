@@ -30,7 +30,7 @@ jobs:
         node-version: 14
 
     - name: Build with Gradle
-      run: ./gradlew build
+      run: .TDD_Uppgift-GruppPhilipA/gradlew build
 
     - name: Run Tests
-      run: ./gradlew test
+      run: .TDD_Uppgift-GruppPhilipA/gradlew test
