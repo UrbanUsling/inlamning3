@@ -3,11 +3,9 @@ name: Run Tests
 on:
   push:
     branches:
-      - main
       - working-branch
   pull_request:
     branches:
-      - main
       - working-branch
 
 jobs:
