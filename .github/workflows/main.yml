@@ -30,7 +30,6 @@ jobs:
         node-version: 14
 
     - name: Build with Gradle
-      working-directory: /TDD-Uppgift-GruppPhilipA
       run: ./gradlew build
 
 
