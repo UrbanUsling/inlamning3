@@ -22,15 +22,14 @@ jobs:
       uses: actions/setup-java@v2
       with:
         java-version: '11'  # Specify the desired Java version
-        distribution: 'adopt'  # Specify the distribution (e.g., 'adopt', 'adopt-hotspot', 'adopt-openj9')
-
+        distribution: 'adopt'  
     - name: Set up Node.js
       uses: actions/setup-node@v2
       with:
         node-version: 14
 
     - name: Build with Gradle
-      run: .TDD_Uppgift-GruppPhilipA/gradlew build
+      run: ./gradlew build
 
     - name: Run Tests
-      run: .TDD_Uppgift-GruppPhilipA/gradlew te
+      run: ./gradlew te
