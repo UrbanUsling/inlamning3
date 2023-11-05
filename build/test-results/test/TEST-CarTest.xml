@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="CarTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2023-11-04T22:20:48" hostname="CORTOMALTESE" time="0.034">
+  <properties/>
+  <testcase name="testAccelerateWithDriveApplied()" classname="CarTest" time="0.014"/>
+  <testcase name="testStartEngineWithSufficientBattery()" classname="CarTest" time="0.001"/>
+  <testcase name="testTurnBreakLightsOn()" classname="CarTest" time="0.0"/>
+  <testcase name="testTurnOnFullLights()" classname="CarTest" time="0.001"/>
+  <testcase name="testBrake()" classname="CarTest" time="0.001"/>
+  <testcase name="testTurnOnHalfLights()" classname="CarTest" time="0.0"/>
+  <testcase name="testClutchReverse()" classname="CarTest" time="0.001"/>
+  <testcase name="testGetInfo()" classname="CarTest" time="0.001"/>
+  <testcase name="testChargeBattery()" classname="CarTest" time="0.006"/>
+  <testcase name="testTurnOffLights()" classname="CarTest" time="0.0"/>
+  <testcase name="testTurnOnEmergencyLights()" classname="CarTest" time="0.0"/>
+  <testcase name="testStartEngineWithLowBattery()" classname="CarTest" time="0.001"/>
+  <testcase name="testStopEngine()" classname="CarTest" time="0.0"/>
+  <testcase name="testAccelerateWithReverseApplied()" classname="CarTest" time="0.0"/>
+  <testcase name="testClutchDrive()" classname="CarTest" time="0.001"/>
+  <system-out><![CDATA[It will take 50.0% charging
+The battery is fully loaded an the cost is 500.0
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
