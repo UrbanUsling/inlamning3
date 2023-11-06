@@ -86,13 +86,7 @@ jobs:
     # måste klara testerna först innan vi kan bygga applikationen
     needs: [unit-test, integration-test]
     steps:
-      - name: Check for GITHUB_TOKEN
-        run: |
-          if [ -z "${{ secrets.token }}" ]; then
-            echo "You must provide an GITHUB_TOKEN secret."
-            exit 1
-          fi
-
+    
       - name: Checkout Repository
         uses: actions/checkout@v3
 
