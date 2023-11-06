@@ -1,168 +1,165 @@
-name: test deploy
+name: build and deploy testing env
+
 on:
-  push:
-    branches:
-      - feature*
-      - main
   pull_request:
     branches:
-      - main
+      - master
+
+env:
+  # Defines three custom environment variables for the workflow.
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  # The short ref name of the branch or tag that triggered the workflow run.
+  # This value matches the branch or tag name shown on GitHub. For example, feature-branch-1.
+  BRANCH_NAME: ${{ github.base_ref }}
+
 jobs:
-  service_test:
+  #Använder annat workflow för tester
+  unit-test:
+    name: Unit-Test
     runs-on: ubuntu-latest
-    services:
-      app:
-        image: inlamning3
-        ports: 
-        - 8080:8080
-        options: --health-cmd="curl -f http://localhost:8080/" --health-interval=10s --health-timeout=5s --health-retries=3
-
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-    
-    - name: Build with Gradle
-      run: |
-        chmod +x ./gradlew
-        ./gradlew integrationTest
-
-  unit_tests:
-    runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Set up Java
-        uses: actions/setup-java@v2
+      - name: Set up Java 17
+        uses: actions/setup-java@v3
         with:
-          java-version: 17
-          distribution: temurin
+          distribution: 'corretto'
+          java-version: '17'
 
-      - name: Build with Gradle
+      # Give wrapper rw rights
+      - name: Chmod gradle wrapper
         run: chmod +x ./gradlew
 
-      - name: Run UnitTests
-        run: ./gradlew test 
+      # Build With Gradle Action
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@749f47bda3e44aa060e82d7b3ef7e40d953bd629
+        with:
+          arguments: test
 
-  integration_tests:
+  integration-test:
+    name: Integration-Test
     runs-on: ubuntu-latest
-    needs: unit_tests
-
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Set up Java
-        uses: actions/setup-java@v2
+      - name: Set up Java 17
+        uses: actions/setup-java@v3
         with:
-          java-version: 17
-          distribution: temurin
+          distribution: 'corretto'
+          java-version: '17'
 
-      - name: Build with Gradle
+      # Give wrapper rw rights
+      - name: Chmod gradle wrapper
         run: chmod +x ./gradlew
 
-      - name: Run integration tests
-        run: ./gradlew integrationTest
+      # Build With Gradle Action
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@749f47bda3e44aa060e82d7b3ef7e40d953bd629
+        with:
+          arguments: integrationTest
 
-  checkstyle_tests:
-     runs-on: ubuntu-latest
-     needs: [unit_tests, integration_tests]
-     steps:
-
-       - name: Checkout code
-         uses: actions/checkout@v4
-
-       - name: Set up Java
-         uses: actions/setup-java@v2
-         with:
-           java-version: 17
-           distribution: temurin
-
-       - name: Build with gradle
-         run: chmod +x ./gradlew
-
-       - name: Run Checkstyle
-         run: ./gradlew checkstyleMain checkstyleTest
-
-  publish_github_package:
-    needs: [unit_tests, integration_tests, checkstyle_tests]
+  # HÄR BYGGER VI IMG OCH SKICKAR UPP TILL GHCR REGISTRY
+  build-and-push:
+    name: build-and-push
     runs-on: ubuntu-latest
+    # So we can use this output in the next job
+    outputs:
+      tags: ${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{env.BRANCH_NAME}}
+    # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
     permissions:
       contents: read
       packages: write
-
+    # måste klara testerna först innan vi kan bygga applikationen
+    needs: [unit-test, integration-test]
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Check for GITHUB_TOKEN
+        run: |
+          if [ -z "${{ secrets.token }}" ]; then
+            echo "You must provide an GITHUB_TOKEN secret."
+            exit 1
+          fi
 
-      - name: Set up Java
-        uses: actions/setup-java@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # Set up Java 17
+      - name: Set up Java 17
+        uses: actions/setup-java@v3
         with:
-          java-version: 17
-          distribution: temurin
+          distribution: 'corretto'
+          java-version: '17'
 
-      - name: Build with Gradle
+      # Give wrapper rw rights
+      - name: Chmod gradle wrapper
         run: chmod +x ./gradlew
 
-      - name: Build with gradle 8.3
-        uses: gradle/gradle-build-action@bd5760595778326ba7f1441bcf7e88b49de61a25
+      # Google CheckStyle report included in Image deployed to GHCR
+      - name: Run Checkstyle to include report in Image
+        run: ./gradlew clean checkstyleMain checkstyleTest
+
+
+      # Build With Gradle Action
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@749f47bda3e44aa060e82d7b3ef7e40d953bd629
         with:
           arguments: build
 
-      - name: Publish to GitHub Packages
-        uses: gradle/gradle-build-action@bd5760595778326ba7f1441bcf7e88b49de61a25 # v2.6.0
+      - name: Log in to the GHCR Container registry
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
         with:
-          arguments: publish
-        env:
-          USERNAME: ${{ github.actor }}
-          TOKEN: ${{ secrets.TOKEN }}
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.token }}
 
       - name: Build and push From DockerFile
-        if: github.event_name != 'pull_request'
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: . # Dockerfile is in root folder of context
           push: true
-          tags: ghcr.io/${{ github.repository }}:${{github.ref_name}}
+          tags: ${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{env.BRANCH_NAME}}
 
-      - name: Build and push from DockerFile Pull Req
-        if: github.event_name == 'pull_request' && github.base_ref == 'refs/heads/main'
-        uses: docker/build-push-action@v5
+  system-test:
+    name: system-test
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    # Testar Image Artifakt med curl
+    services:
+      app:
+        image: ${{ needs.build-and-push.outputs.tags }}
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ secrets.token }}
+        ports:
+          - 8080:8080
+        options: --health-cmd="curl -f http://localhost:8080/api/cars" --health-interval=10s --health-timeout=5s --health-retries=3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v3
         with:
-          context: .
-          push: true
-          tags: ghcr.io/lisapel/final:main
+          distribution: 'corretto'
+          java-version: '17'
 
-  deploy_to_test:
+      # Give wrapper rw rights
+      - name: Chmod gradle wrapper
+        run: chmod +x ./gradlew
+
+      # Build With Gradle Action
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@749f47bda3e44aa060e82d7b3ef7e40d953bd629
+        with:
+          arguments: systemTest
+
+  # Fake Deploy Testing Env(CD)
+  fake-deploy-testing-env:
+    name: Fake Deploy Application to testing environment
+    needs: system-test
     runs-on: ubuntu-latest
-    needs: [ unit_tests, integration_tests, publish_github_package ]
-    if: github.ref != 'refs/heads/main' && github.event_name != 'pull_request'
-
     steps:
-      - name: Deploy to Test Environment
-        run: |
-          echo "Deploying to test environment..."
-          echo "Docker image would be: $IMAGE"
-
-  deploy_to_production:
-    runs-on: ubuntu-latest
-    needs: [ unit_tests, integration_tests, publish_github_package ]
-    if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.event_name == 'pull_request' && github.base_ref == 'refs/heads/main')
- 
-    steps:
-      - name: Deploy to Production Environment
-        run: |
-          echo "Deploying to production environment..."
-          echo "Docker image would be: $IMAGE"
+      - name: Echo Image Name From GHCR Registry
+        run: echo "Fake deployed to testing environment - ${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{env.BRANCH_NAME}}"
