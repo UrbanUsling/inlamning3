@@ -3,7 +3,12 @@ name: testing env
 on:
   pull_request:
     branches:
-      - master
+      - main
+      - working-branch
+  push:
+    branches:
+      - main
+      - working-branch
 
 env:
   # Defines three custom environment variables for the workflow.
@@ -14,6 +19,13 @@ env:
   BRANCH_NAME: ${{ github.base_ref }}
 
 jobs:
+  # Fake Deploy Production Env
+  fake-deploy-prod-env:
+    name: Fake Deploy Application to Prod environment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Push To Production
+        run: echo "Fake deployed production - ${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{env.BRANCH_NAME}}"  
   unit-test:
     name: Unit-Test
     runs-on: ubuntu-latest
