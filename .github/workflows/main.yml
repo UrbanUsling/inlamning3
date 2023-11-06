@@ -14,7 +14,6 @@ env:
   BRANCH_NAME: ${{ github.base_ref }}
 
 jobs:
-  #Använder annat workflow för tester
   unit-test:
     name: Unit-Test
     runs-on: ubuntu-latest
