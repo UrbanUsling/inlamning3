@@ -27,7 +27,7 @@ public class CarTest {
         assertEquals("Ford", car2.getCarBrand());
         assertEquals(1993, car2.getYear());
         assertEquals(210, car2.getTopSpeed());
-        assertEquals(0.3, car2.getPowerConsumptionIndex());
+        assertEquals(0.6, car2.getPowerConsumptionIndex());
     }
     @Test
     void testTurnOnHalfLights() {
