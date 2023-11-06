@@ -138,7 +138,7 @@ jobs:
   # Fake Deploy Testing Env(CD)
   fake-deploy-testing-env:
     name: Fake Deploy Application to testing environment
-    needs: system-test
+    
     runs-on: ubuntu-latest
     steps:
       - name: Echo Image Name From GHCR Registry
