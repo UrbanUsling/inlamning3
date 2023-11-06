@@ -1,0 +1,32 @@
+name: run-all-unit
+on: # Kör Alla Unit tester I alla branches förutom Master/Main
+  push:
+    branches-ignore:
+      - master
+      - main
+
+
+jobs:
+  # Yttre Loopen: Säkerställa att enhetstester körs automatiskt i alla branches på github.
+  test-application:
+    name: Unit-Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+
+      # Give wrapper rw rights
+      - name: Chmod gradle wrapper
+        run: chmod +x ./gradlew
+
+      # Gradle Build Action 'TEST'
+      - name: Gradle Test Action
+        uses: gradle/gradle-build-action@749f47bda3e44aa060e82d7b3ef7e40d953bd629
+        with:
+          arguments: test
