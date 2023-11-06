@@ -73,7 +73,7 @@ public class Car {
         if(state.equalsIgnoreCase("full")){
             fullLightsOn = true;
             halfLightsOn = false;
-            setBatteryLevel(batteryLevel -0.5*powerConsumptionIndex);
+            setBatteryLevel(batteryLevel -0.8*powerConsumptionIndex);
         }else if(state.equalsIgnoreCase("half")){
             halfLightsOn = true;
             fullLightsOn = false;
